@@ -1,38 +1,39 @@
 import type { Habit, LogsByMonth } from '../types/habit'
+import { isHabitDoneForValue } from '../types/habit'
 import { getBestStreak, getCurrentStreak, getHeatmapDays, getTotalCompletions } from '../lib/streaks'
 import { today } from '../lib/date'
 
 interface HabitDetailProps {
   habit: Habit
   logs: LogsByMonth
-  onToggleToday: () => void
+  todayValue: number
+  onLogToday: () => void
   onDelete: () => void
-  doneToday: boolean
 }
 
-export default function HabitDetail({ habit, logs, onToggleToday, onDelete, doneToday }: HabitDetailProps) {
+export default function HabitDetail({ habit, logs, todayValue, onLogToday, onDelete }: HabitDetailProps) {
   const ref = today()
-  const current = getCurrentStreak(logs, habit.id, ref)
-  const best = getBestStreak(logs, habit.id)
-  const total = getTotalCompletions(logs, habit.id)
-  const heatmap = getHeatmapDays(logs, habit.id, ref, 18)
+  const current = getCurrentStreak(logs, habit, ref)
+  const best = getBestStreak(logs, habit)
+  const total = getTotalCompletions(logs, habit)
+  const heatmap = getHeatmapDays(logs, habit, ref, 18)
+  const doneToday = isHabitDoneForValue(habit, todayValue)
 
   return (
     <div className="detail">
       <div className="detail-header">
-        <div className="habit-emoji large" style={{ background: `${habit.color}26` }}>
+        <div className="habit-emoji large" style={{ background: habit.color }}>
           {habit.emoji}
         </div>
         <h1>{habit.name}</h1>
       </div>
 
-      <button
-        type="button"
-        className="primary-btn"
-        style={{ background: habit.color }}
-        onClick={onToggleToday}
-      >
-        {doneToday ? '✓ Выполнено сегодня' : 'Отметить сегодня'}
+      <button type="button" className="primary-btn" style={{ background: habit.color }} onClick={onLogToday}>
+        {habit.type === 'goal' && habit.goal
+          ? `${formatAmount(todayValue)}/${formatAmount(habit.goal.target)} ${habit.goal.unit}`
+          : doneToday
+            ? '✓ Выполнено сегодня'
+            : 'Отметить сегодня'}
       </button>
 
       <div className="stats-row">
@@ -67,4 +68,8 @@ export default function HabitDetail({ habit, logs, onToggleToday, onDelete, done
       </button>
     </div>
   )
+}
+
+function formatAmount(n: number) {
+  return Number.isInteger(n) ? String(n) : n.toFixed(1)
 }

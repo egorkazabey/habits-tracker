@@ -1,37 +1,57 @@
+import type { Habit } from '../types/habit'
+import { isHabitDoneForValue } from '../types/habit'
+
 interface HabitCardProps {
-  name: string
-  emoji: string
-  color: string
-  done: boolean
+  habit: Habit
+  value: number
   streak: number
   onToggle: () => void
   onOpen: () => void
 }
 
-export default function HabitCard({ name, emoji, color, done, streak, onToggle, onOpen }: HabitCardProps) {
+export default function HabitCard({ habit, value, streak, onToggle, onOpen }: HabitCardProps) {
+  const done = isHabitDoneForValue(habit, value)
+
   return (
-    <div className="habit-card" onClick={onOpen}>
-      <div className="habit-emoji" style={{ background: `${color}26` }}>
-        {emoji}
-      </div>
+    <div className="habit-card" style={{ background: habit.color }} onClick={onOpen}>
+      <div className="habit-emoji">{habit.emoji}</div>
       <div className="habit-info">
-        <div className="habit-name">{name}</div>
-        <div className="habit-streak">{streak > 0 ? `🔥 ${streak} ${dayWord(streak)} подряд` : 'Начни сегодня'}</div>
+        <div className="habit-name">{habit.name}</div>
+        <div className="habit-streak">{streak > 0 ? `🔥 ${streak} ${dayWord(streak)}` : 'Начни сегодня'}</div>
       </div>
-      <button
-        type="button"
-        className={`habit-check ${done ? 'done' : ''}`}
-        style={done ? { background: color, borderColor: color } : undefined}
-        onClick={(e) => {
-          e.stopPropagation()
-          onToggle()
-        }}
-        aria-label={done ? 'Отметить как не выполнено' : 'Отметить как выполнено'}
-      >
-        {done ? '✓' : ''}
-      </button>
+
+      {habit.type === 'goal' && habit.goal ? (
+        <button
+          type="button"
+          className={`habit-goal-value ${done ? 'done' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggle()
+          }}
+        >
+          {formatAmount(value)}/{formatAmount(habit.goal.target)}
+          <span className="habit-goal-unit">{habit.goal.unit}</span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          className={`habit-check ${done ? 'done' : ''}`}
+          style={done ? { background: '#fff', color: habit.color } : undefined}
+          onClick={(e) => {
+            e.stopPropagation()
+            onToggle()
+          }}
+          aria-label={done ? 'Отметить как не выполнено' : 'Отметить как выполнено'}
+        >
+          {done ? '✓' : ''}
+        </button>
+      )}
     </div>
   )
+}
+
+function formatAmount(n: number) {
+  return Number.isInteger(n) ? String(n) : n.toFixed(1)
 }
 
 function dayWord(n: number) {
