@@ -13,6 +13,10 @@ dist-ssr
 *.local
 .claude/settings.local.json
 
+# Cloudflare Worker (worker/) local state and secrets
+.wrangler
+.dev.vars
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

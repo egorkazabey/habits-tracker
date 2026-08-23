@@ -1,5 +1,6 @@
 import type { Habit } from '../types/habit'
 import { isHabitDoneForValue } from '../types/habit'
+import HabitIcon from './HabitIcon'
 
 interface HabitCardProps {
   habit: Habit
@@ -11,13 +12,18 @@ interface HabitCardProps {
 
 export default function HabitCard({ habit, value, streak, onToggle, onOpen }: HabitCardProps) {
   const done = isHabitDoneForValue(habit, value)
+  const isQuit = habit.kind === 'quit'
 
   return (
     <div className="habit-card" style={{ background: habit.color }} onClick={onOpen}>
-      <div className="habit-emoji">{habit.emoji}</div>
+      <div className="habit-emoji">
+        <HabitIcon habit={habit} />
+      </div>
       <div className="habit-info">
         <div className="habit-name">{habit.name}</div>
-        <div className="habit-streak">{streak > 0 ? `🔥 ${streak} ${dayWord(streak)}` : 'Начни сегодня'}</div>
+        <div className="habit-streak">
+          {streak > 0 ? `🔥 ${streak} ${dayWord(streak)}${isQuit ? ' без срывов' : ''}` : 'Начни сегодня'}
+        </div>
       </div>
 
       {habit.type === 'goal' && habit.goal ? (
@@ -41,7 +47,7 @@ export default function HabitCard({ habit, value, streak, onToggle, onOpen }: Ha
             e.stopPropagation()
             onToggle()
           }}
-          aria-label={done ? 'Отметить как не выполнено' : 'Отметить как выполнено'}
+          aria-label={isQuit ? (done ? 'Отметить срыв' : 'Отменить срыв') : done ? 'Отметить как не выполнено' : 'Отметить как выполнено'}
         >
           {done ? '✓' : ''}
         </button>

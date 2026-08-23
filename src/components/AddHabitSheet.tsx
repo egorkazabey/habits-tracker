@@ -1,39 +1,84 @@
 import { useState } from 'react'
-import { HABIT_COLORS, HABIT_EMOJIS, TIME_OF_DAY_OPTIONS } from '../lib/constants'
-import type { HabitType, TimeOfDay } from '../types/habit'
+import { HABIT_COLORS, TIME_OF_DAY_OPTIONS, WEEKDAY_SHORT } from '../lib/constants'
+import { toDateKey } from '../lib/date'
+import IconPickerSheet from './IconPickerSheet'
+import HabitIcon from './HabitIcon'
+import type { Habit, HabitKind, HabitType, IconType, ChartType, TimeOfDay } from '../types/habit'
+
+type NewHabit = Omit<Habit, 'id' | 'createdAt'>
 
 interface AddHabitSheetProps {
-  onSubmit: (data: {
-    name: string
-    emoji: string
-    color: string
-    type: HabitType
-    goal?: { target: number; unit: string }
-    timeOfDay: TimeOfDay
-  }) => void
+  existingGroups: string[]
+  onSubmit: (data: NewHabit) => void
   onClose: () => void
 }
 
-export default function AddHabitSheet({ onSubmit, onClose }: AddHabitSheetProps) {
+const ALL_WEEKDAYS = [0, 1, 2, 3, 4, 5, 6]
+
+export default function AddHabitSheet({ existingGroups, onSubmit, onClose }: AddHabitSheetProps) {
   const [name, setName] = useState('')
-  const [emoji, setEmoji] = useState(HABIT_EMOJIS[0])
+  const [description, setDescription] = useState('')
   const [color, setColor] = useState(HABIT_COLORS[0])
+  const [group, setGroup] = useState('')
+  const [iconType, setIconType] = useState<IconType>('emoji')
+  const [icon, setIcon] = useState('💪')
+  const [showIconPicker, setShowIconPicker] = useState(false)
+
+  const [kind, setKind] = useState<HabitKind>('build')
   const [type, setType] = useState<HabitType>('boolean')
   const [target, setTarget] = useState(1)
   const [unit, setUnit] = useState('раз')
+
+  const [everyDay, setEveryDay] = useState(true)
+  const [activeWeekdays, setActiveWeekdays] = useState<number[]>([])
+
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('anytime')
 
-  const canSubmit = name.trim().length > 0 && (type === 'boolean' || (target > 0 && unit.trim().length > 0))
+  const [remindersOn, setRemindersOn] = useState(false)
+  const [reminderTimes, setReminderTimes] = useState<string[]>([])
+  const [newReminderTime, setNewReminderTime] = useState('09:00')
+  const [reminderMessage, setReminderMessage] = useState('')
+
+  const [showMemo, setShowMemo] = useState(true)
+  const [chartType, setChartType] = useState<ChartType>('bar')
+
+  const [startDate, setStartDate] = useState(toDateKey(new Date()))
+  const [endDate, setEndDate] = useState('')
+
+  const canSubmit =
+    name.trim().length > 0 &&
+    (kind === 'quit' || type === 'boolean' || (target > 0 && unit.trim().length > 0)) &&
+    (everyDay || activeWeekdays.length > 0)
+
+  const toggleWeekday = (day: number) => {
+    setActiveWeekdays((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort()))
+  }
+
+  const addReminderTime = () => {
+    if (reminderTimes.includes(newReminderTime)) return
+    setReminderTimes((prev) => [...prev, newReminderTime].sort())
+  }
 
   const submit = () => {
     if (!canSubmit) return
     onSubmit({
       name: name.trim(),
-      emoji,
+      description: description.trim() || undefined,
+      iconType,
+      icon,
       color,
-      type,
-      goal: type === 'goal' ? { target, unit: unit.trim() } : undefined,
+      kind,
+      type: kind === 'quit' ? 'boolean' : type,
+      goal: kind === 'build' && type === 'goal' ? { target, unit: unit.trim() } : undefined,
       timeOfDay,
+      activeWeekdays: everyDay ? ALL_WEEKDAYS : activeWeekdays,
+      startDate,
+      endDate: endDate || undefined,
+      group: group.trim() || undefined,
+      showMemo,
+      chartType,
+      reminders: remindersOn && reminderTimes.length > 0 ? reminderTimes.map((time) => ({ time })) : undefined,
+      reminderMessage: reminderMessage.trim() || undefined,
     })
   }
 
@@ -47,66 +92,29 @@ export default function AddHabitSheet({ onSubmit, onClose }: AddHabitSheetProps)
           </button>
         </div>
 
-        <input
-          className="text-input"
-          placeholder="Например: Пить воду"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          autoFocus
-          maxLength={40}
-        />
-
-        <div className="field-label">Тип</div>
-        <div className="segmented" style={{ marginBottom: 16 }}>
-          <button
-            type="button"
-            className={`segmented-btn ${type === 'boolean' ? 'selected' : ''}`}
-            onClick={() => setType('boolean')}
-          >
-            Да / нет
+        <div className="add-habit-top">
+          <button type="button" className="icon-preview-btn" onClick={() => setShowIconPicker(true)}>
+            <HabitIcon habit={{ iconType, icon }} size={28} />
           </button>
-          <button
-            type="button"
-            className={`segmented-btn ${type === 'goal' ? 'selected' : ''}`}
-            onClick={() => setType('goal')}
-          >
-            Цель
-          </button>
-        </div>
-
-        {type === 'goal' && (
-          <div className="goal-inputs">
+          <div className="add-habit-top-fields">
             <input
-              className="text-input goal-target-input"
-              type="number"
-              inputMode="decimal"
-              min={0}
-              value={target}
-              onChange={(e) => setTarget(Number(e.target.value) || 0)}
-              placeholder="Цель"
+              className="text-input"
+              style={{ marginBottom: 8 }}
+              placeholder="Название"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              autoFocus
+              maxLength={40}
             />
             <input
-              className="text-input goal-unit-input"
-              value={unit}
-              onChange={(e) => setUnit(e.target.value)}
-              placeholder="ед. (ч, мл, раз…)"
-              maxLength={12}
+              className="text-input"
+              style={{ marginBottom: 0 }}
+              placeholder="Описание (необязательно)"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              maxLength={80}
             />
           </div>
-        )}
-
-        <div className="field-label">Иконка</div>
-        <div className="emoji-grid">
-          {HABIT_EMOJIS.map((e) => (
-            <button
-              key={e}
-              type="button"
-              className={`emoji-btn ${e === emoji ? 'selected' : ''}`}
-              onClick={() => setEmoji(e)}
-            >
-              {e}
-            </button>
-          ))}
         </div>
 
         <div className="field-label">Цвет</div>
@@ -123,7 +131,93 @@ export default function AddHabitSheet({ onSubmit, onClose }: AddHabitSheetProps)
           ))}
         </div>
 
-        <div className="field-label">Время суток</div>
+        <div className="field-label">Группа</div>
+        <input
+          className="text-input"
+          list="habit-groups"
+          placeholder="Например: Здоровье (необязательно)"
+          value={group}
+          onChange={(e) => setGroup(e.target.value)}
+          maxLength={30}
+        />
+        <datalist id="habit-groups">
+          {existingGroups.map((g) => (
+            <option key={g} value={g} />
+          ))}
+        </datalist>
+
+        <div className="field-label">Тип привычки</div>
+        <div className="segmented" style={{ marginBottom: 16 }}>
+          <button type="button" className={`segmented-btn ${kind === 'build' ? 'selected' : ''}`} onClick={() => setKind('build')}>
+            Строить
+          </button>
+          <button type="button" className={`segmented-btn ${kind === 'quit' ? 'selected' : ''}`} onClick={() => setKind('quit')}>
+            Бросить
+          </button>
+        </div>
+
+        {kind === 'build' && (
+          <>
+            <div className="field-label">Как отмечать</div>
+            <div className="segmented" style={{ marginBottom: 16 }}>
+              <button type="button" className={`segmented-btn ${type === 'boolean' ? 'selected' : ''}`} onClick={() => setType('boolean')}>
+                Да / нет
+              </button>
+              <button type="button" className={`segmented-btn ${type === 'goal' ? 'selected' : ''}`} onClick={() => setType('goal')}>
+                Цель
+              </button>
+            </div>
+
+            {type === 'goal' && (
+              <div className="goal-inputs">
+                <input
+                  className="text-input goal-target-input"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  value={target}
+                  onChange={(e) => setTarget(Number(e.target.value) || 0)}
+                  placeholder="Цель"
+                />
+                <input
+                  className="text-input goal-unit-input"
+                  value={unit}
+                  onChange={(e) => setUnit(e.target.value)}
+                  placeholder="ед. (ч, мл, раз…)"
+                  maxLength={12}
+                />
+              </div>
+            )}
+          </>
+        )}
+
+        <div className="field-label">Дни</div>
+        <div className="segmented" style={{ marginBottom: 12 }}>
+          <button type="button" className={`segmented-btn ${everyDay ? 'selected' : ''}`} onClick={() => setEveryDay(true)}>
+            Каждый день
+          </button>
+          <button type="button" className={`segmented-btn ${!everyDay ? 'selected' : ''}`} onClick={() => setEveryDay(false)}>
+            Выбрать дни
+          </button>
+        </div>
+        {!everyDay && (
+          <div className="weekday-row">
+            {WEEKDAY_SHORT.map((label, i) => (
+              <button
+                key={label}
+                type="button"
+                className={`weekday-btn ${activeWeekdays.includes(i) ? 'selected' : ''}`}
+                onClick={() => toggleWeekday(i)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="field-label" style={{ marginTop: 16 }}>
+          Время суток
+        </div>
         <div className="segmented wrap" style={{ marginBottom: 20 }}>
           {TIME_OF_DAY_OPTIONS.map((opt) => (
             <button
@@ -137,10 +231,104 @@ export default function AddHabitSheet({ onSubmit, onClose }: AddHabitSheetProps)
           ))}
         </div>
 
+        <div className="toggle-row">
+          <span>Напоминания</span>
+          <label className="switch">
+            <input type="checkbox" checked={remindersOn} onChange={(e) => setRemindersOn(e.target.checked)} />
+            <span className="switch-track" />
+          </label>
+        </div>
+
+        {remindersOn && (
+          <div className="reminders-block">
+            <div className="reminder-add-row">
+              <input
+                className="text-input reminder-time-input"
+                type="time"
+                value={newReminderTime}
+                onChange={(e) => setNewReminderTime(e.target.value)}
+              />
+              <button type="button" className="fab-inline" onClick={addReminderTime} aria-label="Добавить время">
+                +
+              </button>
+            </div>
+            {reminderTimes.length > 0 && (
+              <div className="chip-row" style={{ marginBottom: 12 }}>
+                {reminderTimes.map((time) => (
+                  <button
+                    key={time}
+                    type="button"
+                    className="chip selected"
+                    onClick={() => setReminderTimes((prev) => prev.filter((t) => t !== time))}
+                  >
+                    {time} ✕
+                  </button>
+                ))}
+              </div>
+            )}
+            <input
+              className="text-input"
+              placeholder="Текст напоминания (необязательно)"
+              value={reminderMessage}
+              onChange={(e) => setReminderMessage(e.target.value)}
+              maxLength={100}
+            />
+          </div>
+        )}
+
+        <div className="toggle-row">
+          <span>Заметка после отметки</span>
+          <label className="switch">
+            <input type="checkbox" checked={showMemo} onChange={(e) => setShowMemo(e.target.checked)} />
+            <span className="switch-track" />
+          </label>
+        </div>
+
+        <div className="toggle-row">
+          <span>Вид графика</span>
+          <div className="segmented" style={{ width: 120 }}>
+            <button type="button" className={`segmented-btn ${chartType === 'bar' ? 'selected' : ''}`} onClick={() => setChartType('bar')}>
+              📊
+            </button>
+            <button type="button" className={`segmented-btn ${chartType === 'line' ? 'selected' : ''}`} onClick={() => setChartType('line')}>
+              📈
+            </button>
+          </div>
+        </div>
+
+        <div className="field-label" style={{ marginTop: 16 }}>
+          Срок действия
+        </div>
+        <div className="date-range-row">
+          <input className="text-input date-input" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+          <span className="date-range-sep">—</span>
+          <input
+            className="text-input date-input"
+            type="date"
+            value={endDate}
+            min={startDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            placeholder="Без конца"
+          />
+        </div>
+
         <button type="button" className="primary-btn" disabled={!canSubmit} onClick={submit}>
           Добавить
         </button>
       </div>
+
+      {showIconPicker && (
+        <IconPickerSheet
+          iconType={iconType}
+          icon={icon}
+          onSelect={(t, i) => {
+            setIconType(t)
+            setIcon(i)
+            setShowIconPicker(false)
+          }}
+          onClose={() => setShowIconPicker(false)}
+        />
+      )}
     </div>
   )
 }

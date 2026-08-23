@@ -12,6 +12,7 @@ import {
 } from '../lib/date'
 import { getBestStreakAcrossHabits, habitsActiveOn, isDone } from '../lib/streaks'
 import { MOOD_EMOJIS } from '../lib/constants'
+import HabitIcon from './HabitIcon'
 
 type ReportTab = 'weekly' | 'monthly' | 'yearly'
 
@@ -161,7 +162,7 @@ function WeeklyReport({
                 return (
                   <tr key={habit.id}>
                     <td className="report-habit-col">
-                      {habit.emoji} {habit.name}
+                      <HabitIcon habit={habit} size={14} /> {habit.name}
                     </td>
                     {days.map((d) => {
                       const isActive = habitsActiveOn([habit], d).length > 0
@@ -265,7 +266,7 @@ function MonthlyReport({ habits, logs, anchor, onNav }: { habits: Habit[]; logs:
                 return (
                   <tr key={habit.id}>
                     <td className="report-habit-col">
-                      {habit.emoji} {habit.name}
+                      <HabitIcon habit={habit} size={14} /> {habit.name}
                     </td>
                     {cells.map((cell, i) => (
                       <td key={i}>
@@ -356,7 +357,7 @@ function YearlyReport({ habits, logs, anchor, onNav }: { habits: Habit[]; logs: 
                 return (
                   <tr key={habit.id}>
                     <td className="report-habit-col">
-                      {habit.emoji} {habit.name}
+                      <HabitIcon habit={habit} size={14} /> {habit.name}
                     </td>
                     {cells.map((cell, i) => (
                       <td key={i}>

@@ -10,6 +10,7 @@ import {
   getValue,
   isDone,
 } from '../lib/streaks'
+import HabitIcon from './HabitIcon'
 
 interface OverviewScreenProps {
   habits: Habit[]
@@ -60,7 +61,7 @@ export default function OverviewScreen({ habits, logs, onAdd }: OverviewScreenPr
             style={filterId === h.id ? { background: h.color, color: '#fff' } : undefined}
             onClick={() => setFilterId(h.id)}
           >
-            {h.emoji}
+            <HabitIcon habit={h} size={16} />
           </button>
         ))}
       </div>
@@ -132,8 +133,8 @@ export default function OverviewScreen({ habits, logs, onAdd }: OverviewScreenPr
         ) : (
           doneToday.map((h) => (
             <div key={h.id} className="done-today-row">
-              <span>
-                {h.emoji} {h.name}
+              <span className="done-today-name">
+                <HabitIcon habit={h} size={16} /> {h.name}
               </span>
               {h.type === 'goal' && h.goal && (
                 <span className="done-today-value">

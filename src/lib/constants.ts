@@ -26,3 +26,43 @@ export const TIME_OF_DAY_OPTIONS: { value: TimeOfDay; label: string }[] = [
 ]
 
 export const MOOD_EMOJIS = ['😞', '🙁', '😐', '🙂', '😄']
+
+export const WEEKDAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+
+export type IconCategory = 'sports' | 'food' | 'life' | 'other'
+
+/** lucide-react icon component names, curated per category. */
+export const HABIT_ICON_CATEGORIES: Record<IconCategory, { key: IconCategory; label: string; icons: string[] }> = {
+  sports: {
+    key: 'sports',
+    label: 'Спорт',
+    icons: [
+      'Dumbbell', 'Bike', 'Waves', 'Footprints', 'Trophy', 'Target',
+      'PersonStanding', 'Mountain', 'Volleyball', 'Timer', 'Flame', 'Snowflake',
+    ],
+  },
+  food: {
+    key: 'food',
+    label: 'Еда',
+    icons: [
+      'Apple', 'Coffee', 'UtensilsCrossed', 'GlassWater', 'Salad', 'Carrot',
+      'Egg', 'Fish', 'Cookie', 'Milk', 'Soup', 'IceCreamCone',
+    ],
+  },
+  life: {
+    key: 'life',
+    label: 'Жизнь',
+    icons: [
+      'BookOpen', 'PenLine', 'Brain', 'Moon', 'Sun', 'Heart',
+      'Wallet', 'Brush', 'Guitar', 'Camera', 'Bed', 'ShowerHead',
+    ],
+  },
+  other: {
+    key: 'other',
+    label: 'Другое',
+    icons: [
+      'Star', 'CheckCircle', 'Smile', 'Sparkles', 'Leaf', 'Cigarette',
+      'Ban', 'ThumbsUp', 'AlarmClock', 'Calendar', 'MapPin', 'Plane',
+    ],
+  },
+}

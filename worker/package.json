@@ -1,0 +1,17 @@
+{
+  "name": "habits-reminders-worker",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "test": "node --experimental-strip-types src/telegramAuth.test.mjs"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260823.1",
+    "typescript": "~5.7.0",
+    "wrangler": "^4.125.0"
+  }
+}

@@ -1,0 +1,16 @@
+name = "habits-reminders"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+# Fires every minute — well inside Cloudflare's free-tier Cron Trigger limits for a personal app.
+[triggers]
+crons = ["* * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "habits-reminders"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID" # `npx wrangler d1 create habits-reminders` prints this
+
+# Set the real value with: npx wrangler secret put BOT_TOKEN
+# [vars]
+# BOT_TOKEN is a secret, not a var — never put it here.

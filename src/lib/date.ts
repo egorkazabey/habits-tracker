@@ -12,6 +12,12 @@ export function toDateKey(date: Date) {
   return `${toMonthKey(date)}-${toDayOfMonth(date)}`
 }
 
+/** Parses a "YYYY-MM-DD" key as a local-time Date (avoids the UTC-parse pitfall of `new Date(str)`). */
+export function parseDateKey(key: string) {
+  const [y, m, d] = key.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
 export function startOfDay(date: Date) {
   const d = new Date(date)
   d.setHours(0, 0, 0, 0)
@@ -33,7 +39,8 @@ export function today() {
 }
 
 /** Monday-first weekday index: Monday = 0 ... Sunday = 6 */
-function mondayIndex(date: Date) {
+/** Monday-first weekday index for `date`: Monday = 0 ... Sunday = 6. */
+export function mondayIndex(date: Date) {
   return (date.getDay() + 6) % 7
 }
 

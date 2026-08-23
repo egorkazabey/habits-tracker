@@ -2,6 +2,8 @@ import type { TimeOfDay } from '../types/habit'
 
 export type StatusFilter = 'all' | 'unmet' | 'met'
 export type TimeFilter = 'all' | 'now' | TimeOfDay
+/** 'all' or an exact `habit.group` value. */
+export type GroupFilter = string
 
 export const STATUS_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'all', label: 'Все' },
