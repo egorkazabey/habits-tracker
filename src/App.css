@@ -248,7 +248,7 @@
 }
 
 .fab {
-  position: fixed;
+  position: absolute;
   right: 20px;
   bottom: max(84px, calc(env(safe-area-inset-bottom) + 74px));
   width: 56px;
@@ -277,7 +277,7 @@
 /* Sheets (shared) */
 
 .sheet-overlay {
-  position: fixed;
+  position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
   display: flex;
@@ -518,7 +518,7 @@
 /* Bottom nav */
 
 .bottom-nav {
-  position: fixed;
+  position: absolute;
   left: 0;
   right: 0;
   bottom: 0;

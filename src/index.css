@@ -36,14 +36,36 @@
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
   background: var(--tg-bg);
   color: var(--tg-text);
 }
 
+/*
+ * #root is the app's own explicitly-sized viewport and the containing block
+ * for every "docked" element (FAB, bottom nav, sheet overlays). Telegram's
+ * iOS WebView wraps page content in its own animated container, which breaks
+ * `position: fixed`'s normal "relative to the real viewport" behavior — fixed
+ * elements can end up positioned against that wrapper instead, landing
+ * off-screen or clipped. Making #root the single scrolling, positioned root
+ * and switching that chrome to `position: absolute` relative to it sidesteps
+ * the issue entirely, since it no longer depends on native viewport-fixed
+ * semantics at all.
+ */
 #root {
-  min-height: 100svh;
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  height: 100dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 button {
