@@ -37,7 +37,7 @@ import {
 } from './lib/storage'
 import { syncAllReminders } from './lib/reminders'
 import { today, toDayOfMonth, toMonthKey, timeBucketNow } from './lib/date'
-import { getCurrentStreak, getValue } from './lib/streaks'
+import { getCurrentStreak, getValue, habitsActiveOn } from './lib/streaks'
 import { isHabitDoneForValue } from './types/habit'
 import type { Habit, LogsByMonth, MemosByMonth, MoodByMonth } from './types/habit'
 import './App.css'
@@ -189,7 +189,10 @@ function App() {
   const editingHabit = editingHabitId ? habits.find((h) => h.id === editingHabitId) : undefined
   const todayMood = moods[toMonthKey(ref)]?.[toDayOfMonth(ref)]
 
+  const activeOnSelectedDate = new Set(habitsActiveOn(habits, selectedDate).map((h) => h.id))
+
   const filteredHabits = habits.filter((habit) => {
+    if (!activeOnSelectedDate.has(habit.id)) return false
     const value = getValue(logs, habit.id, selectedDate)
     if (statusFilter !== 'all') {
       const done = isHabitDoneForValue(habit, value)
