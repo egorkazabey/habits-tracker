@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Plus } from 'lucide-react'
 import type { Habit, LogsByMonth, MoodByMonth } from '../types/habit'
 import {
   addDays,
@@ -14,6 +15,7 @@ import {
 import { getBestStreakAcrossHabits, habitsActiveOn, isDone } from '../lib/streaks'
 import { MOOD_EMOJIS } from '../lib/constants'
 import HabitIcon from './HabitIcon'
+import MoodIcon from './MoodIcon'
 
 type ReportTab = 'weekly' | 'monthly' | 'yearly'
 
@@ -34,7 +36,7 @@ export default function ReportScreen({ habits, logs, moods, onSetMood, onAdd }: 
       <div className="overview-header">
         <h1>Отчёт</h1>
         <button type="button" className="fab-inline" onClick={onAdd} aria-label="Добавить привычку">
-          +
+          <Plus size={20} strokeWidth={2.5} />
         </button>
       </div>
 
@@ -198,7 +200,7 @@ function WeeklyReport({
                           onSetMood(d, MOOD_EMOJIS[(idx + 1) % MOOD_EMOJIS.length])
                         }}
                       >
-                        {current ?? '·'}
+                        {current ? <MoodIcon mood={current} size={14} /> : '·'}
                       </button>
                     </td>
                   )

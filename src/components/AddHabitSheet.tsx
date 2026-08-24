@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Plus } from 'lucide-react'
 import { HABIT_COLORS, TIME_OF_DAY_OPTIONS, WEEKDAY_SHORT } from '../lib/constants'
 import { toDateKey } from '../lib/date'
 import { isReminderBackendConfigured } from '../lib/reminders'
@@ -262,7 +263,7 @@ export default function AddHabitSheet({ existingGroups, initialHabit, onSubmit, 
                 onChange={(e) => setNewReminderTime(e.target.value)}
               />
               <button type="button" className="fab-inline" onClick={addReminderTime} aria-label="Добавить время">
-                +
+                <Plus size={20} strokeWidth={2.5} />
               </button>
             </div>
             {reminderTimes.length > 0 && (

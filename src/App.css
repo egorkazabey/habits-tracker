@@ -78,10 +78,10 @@
 .mood-avatar {
   border: none;
   background: var(--tg-secondary-bg);
+  color: var(--tg-text);
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -269,8 +269,9 @@
   border: none;
   background: var(--brand);
   color: #fff;
-  font-size: 28px;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   box-shadow: 0 6px 16px rgba(255, 77, 109, 0.4);
   z-index: 5;
 }
@@ -282,8 +283,9 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  font-size: 20px;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Sheets (shared) */
@@ -544,10 +546,13 @@
 .mood-btn {
   border: none;
   background: var(--tg-secondary-bg);
-  font-size: 26px;
+  color: var(--tg-text);
   width: 52px;
   height: 52px;
   border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Bottom nav */
@@ -929,6 +934,10 @@
   width: 24px;
   height: 24px;
   color: var(--tg-hint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
 }
 
 /* Add-habit form: extra fields */

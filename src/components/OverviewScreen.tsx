@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Plus } from 'lucide-react'
 import type { Habit, LogsByMonth } from '../types/habit'
 import { getMonthMatrix, isSameDay, monthLabel, today } from '../lib/date'
 import {
@@ -42,7 +43,7 @@ export default function OverviewScreen({ habits, logs, onAdd }: OverviewScreenPr
       <div className="overview-header">
         <h1>Обзор</h1>
         <button type="button" className="fab-inline" onClick={onAdd} aria-label="Добавить привычку">
-          +
+          <Plus size={20} strokeWidth={2.5} />
         </button>
       </div>
 

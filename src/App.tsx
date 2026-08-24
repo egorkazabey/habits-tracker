@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Plus } from 'lucide-react'
 import HabitCard from './components/HabitCard'
 import AddHabitSheet from './components/AddHabitSheet'
 import HabitDetail from './components/HabitDetail'
@@ -9,6 +10,7 @@ import type { GroupFilter, StatusFilter, TimeFilter } from './lib/filters'
 import GoalLogSheet from './components/GoalLogSheet'
 import MoodPicker from './components/MoodPicker'
 import MemoPrompt from './components/MemoPrompt'
+import MoodIcon from './components/MoodIcon'
 import BottomNav from './components/BottomNav'
 import type { Tab } from './components/BottomNav'
 import OverviewScreen from './components/OverviewScreen'
@@ -243,7 +245,7 @@ function App() {
                       </button>
                       <h1>Привычки</h1>
                       <button type="button" className="mood-avatar" onClick={() => setShowMoodPicker(true)} aria-label="Настроение">
-                        {todayMood ?? '🙂'}
+                        <MoodIcon mood={todayMood ?? '🙂'} size={18} />
                       </button>
                     </div>
                     <p className="app-subtitle">
@@ -301,7 +303,7 @@ function App() {
 
       {tab === 'home' && !detailHabit && (
         <button type="button" className="fab" onClick={() => setShowAddSheet(true)} aria-label="Добавить привычку">
-          +
+          <Plus size={28} strokeWidth={2.5} />
         </button>
       )}
 

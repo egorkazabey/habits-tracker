@@ -1,4 +1,5 @@
 import { MOOD_EMOJIS } from '../lib/constants'
+import MoodIcon from './MoodIcon'
 
 interface MoodPickerProps {
   onSelect: (emoji: string) => void
@@ -18,7 +19,7 @@ export default function MoodPicker({ onSelect, onClose }: MoodPickerProps) {
               className="mood-btn"
               onClick={() => onSelect(emoji)}
             >
-              {emoji}
+              <MoodIcon mood={emoji} size={24} />
             </button>
           ))}
         </div>
