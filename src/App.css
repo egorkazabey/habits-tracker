@@ -1,6 +1,18 @@
+.app-shell {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .app {
-  min-height: 100svh;
-  padding: 16px 16px 100px;
+  padding: 16px 16px 90px;
   max-width: 560px;
   margin: 0 auto;
 }
@@ -541,15 +553,11 @@
 /* Bottom nav */
 
 .bottom-nav {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  flex: none;
   display: flex;
   background: var(--tg-section-bg);
   border-top: 1px solid var(--tg-border);
   padding: 6px 4px max(6px, env(safe-area-inset-bottom));
-  z-index: 4;
 }
 
 .bottom-nav-btn {
@@ -580,7 +588,6 @@
 /* Detail */
 
 .detail {
-  min-height: 100svh;
   padding: 20px 16px 40px;
   max-width: 560px;
   margin: 0 auto;

@@ -215,88 +215,94 @@ function App() {
 
   return (
     <>
-      {detailHabit ? (
-        <HabitDetail
-          habit={detailHabit}
-          logs={logs}
-          todayValue={getValue(logs, detailHabit.id, ref)}
-          todayMemo={getMemoValue(memos, detailHabit.id, ref)}
-          onLogToday={() =>
-            detailHabit.type === 'goal'
-              ? setGoalTarget({ habitId: detailHabit.id, date: ref })
-              : handleToggleBoolean(detailHabit.id, ref)
-          }
-          onSaveMemo={(text) => handleSaveMemo(detailHabit.id, ref, text)}
-          onEdit={() => setEditingHabitId(detailHabit.id)}
-          onDelete={() => handleDelete(detailHabit.id)}
-        />
-      ) : (
-        <>
-          {tab === 'home' && (
-            <div className="app">
-              <header className="app-header">
-                <div className="app-header-row">
-                  <button type="button" className="filter-pill" onClick={() => setShowFilterSheet(true)}>
-                    {filterLabel} ⌄
-                  </button>
-                  <h1>Привычки</h1>
-                  <button type="button" className="mood-avatar" onClick={() => setShowMoodPicker(true)} aria-label="Настроение">
-                    {todayMood ?? '🙂'}
-                  </button>
-                </div>
-                <p className="app-subtitle">
-                  {user?.first_name ? `Привет, ${user.first_name}!` : 'Отмечай прогресс каждый день'}
-                </p>
-              </header>
+      <div className="app-shell">
+        <div className="app-scroll">
+          {detailHabit ? (
+            <HabitDetail
+              habit={detailHabit}
+              logs={logs}
+              todayValue={getValue(logs, detailHabit.id, ref)}
+              todayMemo={getMemoValue(memos, detailHabit.id, ref)}
+              onLogToday={() =>
+                detailHabit.type === 'goal'
+                  ? setGoalTarget({ habitId: detailHabit.id, date: ref })
+                  : handleToggleBoolean(detailHabit.id, ref)
+              }
+              onSaveMemo={(text) => handleSaveMemo(detailHabit.id, ref, text)}
+              onEdit={() => setEditingHabitId(detailHabit.id)}
+              onDelete={() => handleDelete(detailHabit.id)}
+            />
+          ) : (
+            <>
+              {tab === 'home' && (
+                <div className="app">
+                  <header className="app-header">
+                    <div className="app-header-row">
+                      <button type="button" className="filter-pill" onClick={() => setShowFilterSheet(true)}>
+                        {filterLabel} ⌄
+                      </button>
+                      <h1>Привычки</h1>
+                      <button type="button" className="mood-avatar" onClick={() => setShowMoodPicker(true)} aria-label="Настроение">
+                        {todayMood ?? '🙂'}
+                      </button>
+                    </div>
+                    <p className="app-subtitle">
+                      {user?.first_name ? `Привет, ${user.first_name}!` : 'Отмечай прогресс каждый день'}
+                    </p>
+                  </header>
 
-              <DayStrip selectedDate={selectedDate} today={ref} onSelect={setSelectedDate} />
+                  <DayStrip selectedDate={selectedDate} today={ref} onSelect={setSelectedDate} />
 
-              {habits.length === 0 ? (
-                <div className="empty-state">
-                  <div className="empty-emoji">🌱</div>
-                  <p>Пока нет привычек</p>
-                  <p className="empty-hint">Нажми «+», чтобы добавить первую</p>
-                </div>
-              ) : filteredHabits.length === 0 ? (
-                <div className="empty-state">
-                  <div className="empty-emoji">🔍</div>
-                  <p>Ничего не найдено под текущий фильтр</p>
-                </div>
-              ) : (
-                <div className="habit-list">
-                  {filteredHabits.map((habit) => (
-                    <HabitCard
-                      key={habit.id}
-                      habit={habit}
-                      value={getValue(logs, habit.id, selectedDate)}
-                      streak={getCurrentStreak(logs, habit, ref)}
-                      onToggle={() =>
-                        habit.type === 'goal'
-                          ? setGoalTarget({ habitId: habit.id, date: selectedDate })
-                          : handleToggleBoolean(habit.id, selectedDate)
-                      }
-                      onOpen={() => setView({ name: 'detail', habitId: habit.id })}
-                    />
-                  ))}
+                  {habits.length === 0 ? (
+                    <div className="empty-state">
+                      <div className="empty-emoji">🌱</div>
+                      <p>Пока нет привычек</p>
+                      <p className="empty-hint">Нажми «+», чтобы добавить первую</p>
+                    </div>
+                  ) : filteredHabits.length === 0 ? (
+                    <div className="empty-state">
+                      <div className="empty-emoji">🔍</div>
+                      <p>Ничего не найдено под текущий фильтр</p>
+                    </div>
+                  ) : (
+                    <div className="habit-list">
+                      {filteredHabits.map((habit) => (
+                        <HabitCard
+                          key={habit.id}
+                          habit={habit}
+                          value={getValue(logs, habit.id, selectedDate)}
+                          streak={getCurrentStreak(logs, habit, ref)}
+                          onToggle={() =>
+                            habit.type === 'goal'
+                              ? setGoalTarget({ habitId: habit.id, date: selectedDate })
+                              : handleToggleBoolean(habit.id, selectedDate)
+                          }
+                          onOpen={() => setView({ name: 'detail', habitId: habit.id })}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
-              <button type="button" className="fab" onClick={() => setShowAddSheet(true)} aria-label="Добавить привычку">
-                +
-              </button>
-            </div>
+              {tab === 'overview' && <OverviewScreen habits={habits} logs={logs} onAdd={() => setShowAddSheet(true)} />}
+
+              {tab === 'report' && (
+                <ReportScreen habits={habits} logs={logs} moods={moods} onSetMood={handleSetMood} onAdd={() => setShowAddSheet(true)} />
+              )}
+
+              {tab === 'settings' && <SettingsScreen onResetAll={handleResetAll} />}
+            </>
           )}
+        </div>
 
-          {tab === 'overview' && <OverviewScreen habits={habits} logs={logs} onAdd={() => setShowAddSheet(true)} />}
+        {!detailHabit && <BottomNav active={tab} onChange={(t) => { setTab(t); setView({ name: 'list' }) }} />}
+      </div>
 
-          {tab === 'report' && (
-            <ReportScreen habits={habits} logs={logs} moods={moods} onSetMood={handleSetMood} onAdd={() => setShowAddSheet(true)} />
-          )}
-
-          {tab === 'settings' && <SettingsScreen onResetAll={handleResetAll} />}
-
-          <BottomNav active={tab} onChange={(t) => { setTab(t); setView({ name: 'list' }) }} />
-        </>
+      {tab === 'home' && !detailHabit && (
+        <button type="button" className="fab" onClick={() => setShowAddSheet(true)} aria-label="Добавить привычку">
+          +
+        </button>
       )}
 
       {showAddSheet && <AddHabitSheet existingGroups={groups} onSubmit={handleSaveHabit} onClose={() => setShowAddSheet(false)} />}
