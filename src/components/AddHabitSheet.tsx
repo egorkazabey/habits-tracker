@@ -31,7 +31,8 @@ export default function AddHabitSheet({ existingGroups, initialHabit, onSubmit, 
 
   const [kind, setKind] = useState<HabitKind>(initialHabit?.kind ?? 'build')
   const [type, setType] = useState<HabitType>(initialHabit?.type ?? 'boolean')
-  const [target, setTarget] = useState(initialHabit?.goal?.target ?? 1)
+  const [targetText, setTargetText] = useState(String(initialHabit?.goal?.target ?? 1))
+  const target = Number(targetText) || 0
   const [unit, setUnit] = useState(initialHabit?.goal?.unit ?? 'раз')
 
   const [everyDay, setEveryDay] = useState(!initialHabit || initialHabit.activeWeekdays.length === 7)
@@ -182,8 +183,8 @@ export default function AddHabitSheet({ existingGroups, initialHabit, onSubmit, 
                   type="number"
                   inputMode="decimal"
                   min={0}
-                  value={target}
-                  onChange={(e) => setTarget(Number(e.target.value) || 0)}
+                  value={targetText}
+                  onChange={(e) => setTargetText(e.target.value)}
                   placeholder="Цель"
                 />
                 <input

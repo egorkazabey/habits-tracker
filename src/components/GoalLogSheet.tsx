@@ -12,10 +12,17 @@ interface GoalLogSheetProps {
 
 export default function GoalLogSheet({ habit, value, initialMemo, onSave, onClose }: GoalLogSheetProps) {
   const [amount, setAmount] = useState(value)
+  const [amountText, setAmountText] = useState(String(value))
   const [memo, setMemo] = useState(initialMemo)
   const step = habit.goal && habit.goal.unit.toLowerCase().startsWith('ч') ? 0.5 : 1
 
   const clamp = (n: number) => Math.max(0, Math.round(n * 100) / 100)
+
+  const setAmountClamped = (n: number) => {
+    const next = clamp(n)
+    setAmount(next)
+    setAmountText(String(next))
+  }
 
   return (
     <div className="sheet-overlay" onClick={onClose}>
@@ -30,7 +37,7 @@ export default function GoalLogSheet({ habit, value, initialMemo, onSave, onClos
         </div>
 
         <div className="goal-stepper">
-          <button type="button" className="goal-step-btn" onClick={() => setAmount((a) => clamp(a - step))}>
+          <button type="button" className="goal-step-btn" onClick={() => setAmountClamped(amount - step)}>
             −
           </button>
           <div className="goal-value">
@@ -38,14 +45,19 @@ export default function GoalLogSheet({ habit, value, initialMemo, onSave, onClos
               className="goal-value-input"
               type="number"
               inputMode="decimal"
-              value={amount}
-              onChange={(e) => setAmount(clamp(Number(e.target.value) || 0))}
+              value={amountText}
+              onChange={(e) => {
+                setAmountText(e.target.value)
+                const parsed = Number(e.target.value)
+                if (e.target.value !== '' && !Number.isNaN(parsed)) setAmount(clamp(parsed))
+              }}
+              onBlur={() => setAmountText(String(amount))}
             />
             <span className="goal-unit">
               / {habit.goal?.target} {habit.goal?.unit}
             </span>
           </div>
-          <button type="button" className="goal-step-btn" onClick={() => setAmount((a) => clamp(a + step))}>
+          <button type="button" className="goal-step-btn" onClick={() => setAmountClamped(amount + step)}>
             +
           </button>
         </div>
