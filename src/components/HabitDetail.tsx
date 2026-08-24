@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Habit, LogsByMonth } from '../types/habit'
 import { isHabitDoneForValue } from '../types/habit'
-import { getBestStreak, getCurrentStreak, getHeatmapDays, getTotalCompletions, getWeeklyTotals } from '../lib/streaks'
+import { getBestStreak, getCurrentStreak, getHeatmapDays, getTotalCompletions, getWeeklyTotals, habitsActiveOn } from '../lib/streaks'
 import { today } from '../lib/date'
 import HabitIcon from './HabitIcon'
 import WeeklyChart from './WeeklyChart'
@@ -26,10 +26,12 @@ export default function HabitDetail({ habit, logs, todayValue, todayMemo, onLogT
   const weeklyTotals = getWeeklyTotals(logs, habit, ref, 8)
   const doneToday = isHabitDoneForValue(habit, todayValue)
   const isQuit = habit.kind === 'quit'
+  const scheduledToday = habitsActiveOn([habit], ref).length > 0
   const [memo, setMemo] = useState(todayMemo)
 
-  const primaryLabel =
-    habit.type === 'goal' && habit.goal
+  const primaryLabel = !scheduledToday
+    ? 'Не запланировано на сегодня'
+    : habit.type === 'goal' && habit.goal
       ? `${formatAmount(todayValue)}/${formatAmount(habit.goal.target)} ${habit.goal.unit}`
       : isQuit
         ? doneToday
@@ -49,7 +51,13 @@ export default function HabitDetail({ habit, logs, todayValue, todayMemo, onLogT
         {habit.description && <p className="detail-description">{habit.description}</p>}
       </div>
 
-      <button type="button" className="primary-btn" style={{ background: habit.color }} onClick={onLogToday}>
+      <button
+        type="button"
+        className="primary-btn"
+        style={scheduledToday ? { background: habit.color } : undefined}
+        disabled={!scheduledToday}
+        onClick={onLogToday}
+      >
         {primaryLabel}
       </button>
 

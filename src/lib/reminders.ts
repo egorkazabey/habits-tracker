@@ -3,6 +3,10 @@ import type { Habit } from '../types/habit'
 
 const API_URL = import.meta.env.VITE_REMINDERS_API_URL as string | undefined
 
+export function isReminderBackendConfigured() {
+  return Boolean(API_URL)
+}
+
 interface ReminderRow {
   habitId: string
   habitName: string

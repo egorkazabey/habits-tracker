@@ -8,6 +8,7 @@ import {
   monthLabelShort,
   toDayOfMonth,
   toMonthKey,
+  today,
   weekdayLabel,
 } from '../lib/date'
 import { getBestStreakAcrossHabits, habitsActiveOn, isDone } from '../lib/streaks'
@@ -125,12 +126,13 @@ function WeeklyReport({
   anchor: Date
   onNav: (dir: 1 | -1) => void
 }) {
+  const ref = today()
   const days = getWeekDays(anchor)
   const first = days[0]
   const last = days[6]
 
   const perDay = days.map((date) => {
-    const active = habitsActiveOn(habits, date)
+    const active = date <= ref ? habitsActiveOn(habits, date) : []
     const done = active.filter((h) => isDone(logs, h, date)).length
     return { done, possible: active.length }
   })
@@ -156,7 +158,7 @@ function WeeklyReport({
             </thead>
             <tbody>
               {habits.map((habit) => {
-                const active = days.filter((d) => habitsActiveOn([habit], d).length > 0)
+                const active = days.filter((d) => d <= ref && habitsActiveOn([habit], d).length > 0)
                 const doneCount = active.filter((d) => isDone(logs, habit, d)).length
                 const perfect = active.length > 0 && doneCount === active.length
                 return (
@@ -165,7 +167,7 @@ function WeeklyReport({
                       <HabitIcon habit={habit} size={14} /> {habit.name}
                     </td>
                     {days.map((d) => {
-                      const isActive = habitsActiveOn([habit], d).length > 0
+                      const isActive = d <= ref && habitsActiveOn([habit], d).length > 0
                       const cellDone = isActive && isDone(logs, habit, d)
                       return (
                         <td key={d.toISOString()}>
@@ -219,6 +221,7 @@ function WeeklyReport({
 }
 
 function MonthlyReport({ habits, logs, anchor, onNav }: { habits: Habit[]; logs: LogsByMonth; anchor: Date; onNav: (dir: 1 | -1) => void }) {
+  const ref = today()
   const weeks = getWeeksOfMonth(anchor)
 
   const perWeek = weeks.map((week) => {
@@ -226,7 +229,7 @@ function MonthlyReport({ habits, logs, anchor, onNav }: { habits: Habit[]; logs:
     let possible = 0
     for (const habit of habits) {
       for (const date of week) {
-        if (habitsActiveOn([habit], date).length === 0) continue
+        if (date > ref || habitsActiveOn([habit], date).length === 0) continue
         possible += 1
         if (isDone(logs, habit, date)) done += 1
       }
@@ -257,7 +260,7 @@ function MonthlyReport({ habits, logs, anchor, onNav }: { habits: Habit[]; logs:
               {habits.map((habit) => {
                 let perfectWeeks = 0
                 const cells = weeks.map((week) => {
-                  const activeDays = week.filter((d) => habitsActiveOn([habit], d).length > 0)
+                  const activeDays = week.filter((d) => d <= ref && habitsActiveOn([habit], d).length > 0)
                   const doneDays = activeDays.filter((d) => isDone(logs, habit, d)).length
                   const isPerfect = activeDays.length > 0 && doneDays === activeDays.length
                   if (isPerfect) perfectWeeks += 1
@@ -300,6 +303,7 @@ function MonthlyReport({ habits, logs, anchor, onNav }: { habits: Habit[]; logs:
 }
 
 function YearlyReport({ habits, logs, anchor, onNav }: { habits: Habit[]; logs: LogsByMonth; anchor: Date; onNav: (dir: 1 | -1) => void }) {
+  const ref = today()
   const months = getMonthsOfYear(anchor.getFullYear())
 
   const perMonth = months.map((monthStart) => {
@@ -309,7 +313,7 @@ function YearlyReport({ habits, logs, anchor, onNav }: { habits: Habit[]; logs: 
     for (const habit of habits) {
       for (let d = 1; d <= lastDay; d++) {
         const date = new Date(monthStart.getFullYear(), monthStart.getMonth(), d)
-        if (habitsActiveOn([habit], date).length === 0) continue
+        if (date > ref || habitsActiveOn([habit], date).length === 0) continue
         possible += 1
         if (isDone(logs, habit, date)) done += 1
       }
@@ -345,7 +349,7 @@ function YearlyReport({ habits, logs, anchor, onNav }: { habits: Habit[]; logs: 
                   let active = 0
                   for (let d = 1; d <= lastDay; d++) {
                     const date = new Date(monthStart.getFullYear(), monthStart.getMonth(), d)
-                    if (habitsActiveOn([habit], date).length === 0) continue
+                    if (date > ref || habitsActiveOn([habit], date).length === 0) continue
                     active += 1
                     if (isDone(logs, habit, date)) done += 1
                   }

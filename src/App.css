@@ -1031,6 +1031,13 @@
   padding: 4px 0 8px;
 }
 
+.hint-text {
+  color: var(--tg-hint);
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 6px 0 0;
+}
+
 .reminder-add-row {
   display: flex;
   gap: 8px;

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { HABIT_COLORS, TIME_OF_DAY_OPTIONS, WEEKDAY_SHORT } from '../lib/constants'
 import { toDateKey } from '../lib/date'
+import { isReminderBackendConfigured } from '../lib/reminders'
 import IconPickerSheet from './IconPickerSheet'
 import HabitIcon from './HabitIcon'
 import type { Habit, HabitKind, HabitType, IconType, ChartType, TimeOfDay } from '../types/habit'
@@ -243,6 +244,13 @@ export default function AddHabitSheet({ existingGroups, initialHabit, onSubmit, 
             <span className="switch-track" />
           </label>
         </div>
+
+        {remindersOn && !isReminderBackendConfigured() && (
+          <p className="hint-text">
+            Бот для напоминаний ещё не подключён — время сохранится, но уведомления в Telegram
+            приходить не будут, пока не задеплоен воркер (см. README).
+          </p>
+        )}
 
         {remindersOn && (
           <div className="reminders-block">

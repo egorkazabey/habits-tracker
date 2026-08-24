@@ -8,6 +8,7 @@ import {
   getMonthlyRate,
   getPerfectDaysCount,
   getValue,
+  habitsActiveOn,
   isDone,
 } from '../lib/streaks'
 import HabitIcon from './HabitIcon'
@@ -34,7 +35,7 @@ export default function OverviewScreen({ habits, logs, onAdd }: OverviewScreenPr
   const dailyAverage = getDailyAverage(logs, filtered, monthAnchor, throughDate)
 
   const weeks = getMonthMatrix(monthAnchor)
-  const doneToday = filtered.filter((h) => isDone(logs, h, ref))
+  const doneToday = habitsActiveOn(filtered, ref).filter((h) => isDone(logs, h, ref))
 
   return (
     <div className="app">
@@ -82,7 +83,7 @@ export default function OverviewScreen({ habits, logs, onAdd }: OverviewScreenPr
           {weeks.map((week) =>
             week.map((date) => {
               const inMonth = date.getMonth() === monthAnchor.getMonth()
-              const hasActivity = inMonth && filtered.some((h) => isDone(logs, h, date))
+              const hasActivity = inMonth && date <= ref && habitsActiveOn(filtered, date).some((h) => isDone(logs, h, date))
               return (
                 <div key={date.toISOString()} className={`calendar-cell ${inMonth ? '' : 'muted'} ${isSameDay(date, ref) ? 'today' : ''}`}>
                   <span>{date.getDate()}</span>
