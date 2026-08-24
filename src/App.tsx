@@ -8,9 +8,7 @@ import FilterSheet from './components/FilterSheet'
 import { STATUS_OPTIONS, TIME_OPTIONS } from './lib/filters'
 import type { GroupFilter, StatusFilter, TimeFilter } from './lib/filters'
 import GoalLogSheet from './components/GoalLogSheet'
-import MoodPicker from './components/MoodPicker'
 import MemoPrompt from './components/MemoPrompt'
-import MoodIcon from './components/MoodIcon'
 import BottomNav from './components/BottomNav'
 import type { Tab } from './components/BottomNav'
 import OverviewScreen from './components/OverviewScreen'
@@ -27,12 +25,10 @@ import {
 import {
   loadAllLogs,
   loadAllMemos,
-  loadAllMoods,
   loadHabits,
   saveHabits,
   setLogValue,
   setMemo,
-  setMood,
   toggleBooleanCompletion,
   deleteHabit as deleteHabitFromStore,
   wipeAllData,
@@ -41,7 +37,7 @@ import { syncAllReminders } from './lib/reminders'
 import { today, toDayOfMonth, toMonthKey, timeBucketNow } from './lib/date'
 import { getCurrentStreak, getValue, habitsActiveOn } from './lib/streaks'
 import { isHabitDoneForValue } from './types/habit'
-import type { Habit, LogsByMonth, MemosByMonth, MoodByMonth } from './types/habit'
+import type { Habit, LogsByMonth, MemosByMonth } from './types/habit'
 import './App.css'
 
 type View = { name: 'list' } | { name: 'detail'; habitId: string }
@@ -55,7 +51,6 @@ function getMemoValue(memos: MemosByMonth, habitId: string, date: Date) {
 function App() {
   const [habits, setHabits] = useState<Habit[]>([])
   const [logs, setLogs] = useState<LogsByMonth>({})
-  const [moods, setMoods] = useState<MoodByMonth>({})
   const [memos, setMemos] = useState<MemosByMonth>({})
   const [loading, setLoading] = useState(true)
 
@@ -66,7 +61,6 @@ function App() {
   const [showAddSheet, setShowAddSheet] = useState(false)
   const [editingHabitId, setEditingHabitId] = useState<string | null>(null)
   const [showFilterSheet, setShowFilterSheet] = useState(false)
-  const [showMoodPicker, setShowMoodPicker] = useState(false)
   const [goalTarget, setGoalTarget] = useState<DateTarget | null>(null)
   const [memoPromptTarget, setMemoPromptTarget] = useState<DateTarget | null>(null)
 
@@ -78,11 +72,10 @@ function App() {
 
   useEffect(() => {
     initTelegram()
-    Promise.all([loadHabits(), loadAllLogs(), loadAllMoods(), loadAllMemos()])
-      .then(([loadedHabits, loadedLogs, loadedMoods, loadedMemos]) => {
+    Promise.all([loadHabits(), loadAllLogs(), loadAllMemos()])
+      .then(([loadedHabits, loadedLogs, loadedMemos]) => {
         setHabits(loadedHabits)
         setLogs(loadedLogs)
-        setMoods(loadedMoods)
         setMemos(loadedMemos)
       })
       .finally(() => setLoading(false))
@@ -153,19 +146,11 @@ function App() {
     syncAllReminders(result.habits)
   }
 
-  const handleSetMood = async (date: Date, emoji: string) => {
-    const next = await setMood(moods, date, emoji)
-    setMoods(next)
-    setShowMoodPicker(false)
-    haptic('light')
-  }
-
   const handleResetAll = async () => {
     if (!confirm('Удалить все привычки и всю историю без возможности восстановления?')) return
     await wipeAllData()
     setHabits([])
     setLogs({})
-    setMoods({})
     setMemos({})
     setTab('home')
     setView({ name: 'list' })
@@ -189,7 +174,6 @@ function App() {
   const goalHabit = goalTarget ? habits.find((h) => h.id === goalTarget.habitId) : undefined
   const memoPromptHabit = memoPromptTarget ? habits.find((h) => h.id === memoPromptTarget.habitId) : undefined
   const editingHabit = editingHabitId ? habits.find((h) => h.id === editingHabitId) : undefined
-  const todayMood = moods[toMonthKey(ref)]?.[toDayOfMonth(ref)]
 
   const activeOnSelectedDate = new Set(habitsActiveOn(habits, selectedDate).map((h) => h.id))
 
@@ -244,9 +228,7 @@ function App() {
                         {filterLabel} ⌄
                       </button>
                       <h1>Привычки</h1>
-                      <button type="button" className="mood-avatar" onClick={() => setShowMoodPicker(true)} aria-label="Настроение">
-                        <MoodIcon mood={todayMood ?? '🙂'} size={18} />
-                      </button>
+                      <div className="header-spacer" />
                     </div>
                     <p className="app-subtitle">
                       {user?.first_name ? `Привет, ${user.first_name}!` : 'Отмечай прогресс каждый день'}
@@ -290,7 +272,7 @@ function App() {
               {tab === 'overview' && <OverviewScreen habits={habits} logs={logs} onAdd={() => setShowAddSheet(true)} />}
 
               {tab === 'report' && (
-                <ReportScreen habits={habits} logs={logs} moods={moods} onSetMood={handleSetMood} onAdd={() => setShowAddSheet(true)} />
+                <ReportScreen habits={habits} logs={logs} onAdd={() => setShowAddSheet(true)} />
               )}
 
               {tab === 'settings' && <SettingsScreen onResetAll={handleResetAll} />}
@@ -340,8 +322,6 @@ function App() {
           onClose={() => setGoalTarget(null)}
         />
       )}
-
-      {showMoodPicker && <MoodPicker onSelect={(emoji) => handleSetMood(ref, emoji)} onClose={() => setShowMoodPicker(false)} />}
 
       {memoPromptHabit && memoPromptTarget && (
         <MemoPrompt

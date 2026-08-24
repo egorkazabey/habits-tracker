@@ -75,16 +75,9 @@
   white-space: nowrap;
 }
 
-.mood-avatar {
-  border: none;
-  background: var(--tg-secondary-bg);
-  color: var(--tg-text);
+.header-spacer {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* Day strip */
@@ -534,27 +527,6 @@
   font-size: 13px;
 }
 
-/* Mood */
-
-.mood-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 6px;
-  margin: 8px 0 4px;
-}
-
-.mood-btn {
-  border: none;
-  background: var(--tg-secondary-bg);
-  color: var(--tg-text);
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 /* Bottom nav */
 
 .bottom-nav {
@@ -925,19 +897,6 @@
   color: var(--brand);
   font-weight: 700;
   font-size: 11px;
-}
-
-.mood-cell {
-  border: none;
-  background: transparent;
-  font-size: 16px;
-  width: 24px;
-  height: 24px;
-  color: var(--tg-hint);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
 }
 
 /* Add-habit form: extra fields */

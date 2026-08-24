@@ -42,10 +42,6 @@ export type MonthLog = Record<string, DayLog>
 /** monthKey ("YYYY-MM") -> MonthLog */
 export type LogsByMonth = Record<string, MonthLog>
 
-/** monthKey ("YYYY-MM") -> dayOfMonth ("01".."31") -> mood emoji */
-export type MonthMood = Record<string, string>
-export type MoodByMonth = Record<string, MonthMood>
-
 /** habitId -> memo text for one day */
 export type DayMemo = Record<string, string>
 /** dayOfMonth ("01".."31") -> DayMemo, for one month */

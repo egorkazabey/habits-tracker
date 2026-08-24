@@ -1,33 +1,27 @@
 import { useState } from 'react'
 import { Plus } from 'lucide-react'
-import type { Habit, LogsByMonth, MoodByMonth } from '../types/habit'
+import type { Habit, LogsByMonth } from '../types/habit'
 import {
   addDays,
   getMonthsOfYear,
   getWeekDays,
   getWeeksOfMonth,
   monthLabelShort,
-  toDayOfMonth,
-  toMonthKey,
   today,
   weekdayLabel,
 } from '../lib/date'
 import { getBestStreakAcrossHabits, habitsActiveOn, isDone } from '../lib/streaks'
-import { MOOD_EMOJIS } from '../lib/constants'
 import HabitIcon from './HabitIcon'
-import MoodIcon from './MoodIcon'
 
 type ReportTab = 'weekly' | 'monthly' | 'yearly'
 
 interface ReportScreenProps {
   habits: Habit[]
   logs: LogsByMonth
-  moods: MoodByMonth
-  onSetMood: (date: Date, emoji: string) => void
   onAdd: () => void
 }
 
-export default function ReportScreen({ habits, logs, moods, onSetMood, onAdd }: ReportScreenProps) {
+export default function ReportScreen({ habits, logs, onAdd }: ReportScreenProps) {
   const [tab, setTab] = useState<ReportTab>('weekly')
   const [anchor, setAnchor] = useState(new Date())
 
@@ -62,8 +56,6 @@ export default function ReportScreen({ habits, logs, moods, onSetMood, onAdd }: 
         <WeeklyReport
           habits={habits}
           logs={logs}
-          moods={moods}
-          onSetMood={onSetMood}
           anchor={anchor}
           onNav={(dir) => setAnchor((a) => addDays(a, dir * 7))}
         />
@@ -116,15 +108,11 @@ function ReportStatsRow({ metPercent, bestLabel, totalDone, bestStreak }: { metP
 function WeeklyReport({
   habits,
   logs,
-  moods,
-  onSetMood,
   anchor,
   onNav,
 }: {
   habits: Habit[]
   logs: LogsByMonth
-  moods: MoodByMonth
-  onSetMood: (date: Date, emoji: string) => void
   anchor: Date
   onNav: (dir: 1 | -1) => void
 }) {
@@ -184,29 +172,6 @@ function WeeklyReport({
                   </tr>
                 )
               })}
-              <tr>
-                <td className="report-habit-col">Настроение</td>
-                {days.map((d) => {
-                  const monthKey = toMonthKey(d)
-                  const day = toDayOfMonth(d)
-                  const current = moods[monthKey]?.[day]
-                  return (
-                    <td key={d.toISOString()}>
-                      <button
-                        type="button"
-                        className="mood-cell"
-                        onClick={() => {
-                          const idx = current ? MOOD_EMOJIS.indexOf(current) : -1
-                          onSetMood(d, MOOD_EMOJIS[(idx + 1) % MOOD_EMOJIS.length])
-                        }}
-                      >
-                        {current ? <MoodIcon mood={current} size={14} /> : '·'}
-                      </button>
-                    </td>
-                  )
-                })}
-                <td />
-              </tr>
             </tbody>
           </table>
         </div>

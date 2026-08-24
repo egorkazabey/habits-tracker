@@ -25,8 +25,6 @@ export const TIME_OF_DAY_OPTIONS: { value: TimeOfDay; label: string }[] = [
   { value: 'evening', label: 'Вечер' },
 ]
 
-export const MOOD_EMOJIS = ['😞', '🙁', '😐', '🙂', '😄']
-
 export const WEEKDAY_SHORT = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
 
 export type IconCategory = 'sports' | 'food' | 'life' | 'other'

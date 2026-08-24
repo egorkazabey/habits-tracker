@@ -1,10 +1,9 @@
 import { cloudGetItems, cloudGetKeys, cloudRemoveItems, cloudSetItem } from './cloudStore'
 import { toDayOfMonth, toMonthKey } from './date'
-import type { DayLog, DayMemo, Habit, LogsByMonth, MemosByMonth, MonthLog, MonthMemo, MoodByMonth, MonthMood } from '../types/habit'
+import type { DayLog, DayMemo, Habit, LogsByMonth, MemosByMonth, MonthLog, MonthMemo } from '../types/habit'
 
 const HABITS_KEY = 'habits'
 const LOG_PREFIX = 'logs_'
-const MOOD_PREFIX = 'mood_'
 const MEMO_PREFIX = 'memos_'
 
 /** Shape a habit may have been saved in before newer fields existed. */
@@ -78,10 +77,6 @@ export function loadAllLogs(): Promise<LogsByMonth> {
   return loadPrefixedMonths<MonthLog>(LOG_PREFIX)
 }
 
-export function loadAllMoods(): Promise<MoodByMonth> {
-  return loadPrefixedMonths<MonthMood>(MOOD_PREFIX)
-}
-
 export function loadAllMemos(): Promise<MemosByMonth> {
   return loadPrefixedMonths<MonthMemo>(MEMO_PREFIX)
 }
@@ -131,15 +126,6 @@ export async function toggleBooleanCompletion(
   const day = toDayOfMonth(date)
   const current = logs[monthKey]?.[day]?.[habitId] ?? 0
   return setLogValue(logs, habitId, date, current > 0 ? 0 : 1)
-}
-
-export async function setMood(moods: MoodByMonth, date: Date, emoji: string): Promise<MoodByMonth> {
-  const monthKey = toMonthKey(date)
-  const day = toDayOfMonth(date)
-  const monthMood: MonthMood = { ...(moods[monthKey] ?? {}) }
-  monthMood[day] = emoji
-  await cloudSetItem(MOOD_PREFIX + monthKey, JSON.stringify(monthMood))
-  return { ...moods, [monthKey]: monthMood }
 }
 
 /** Removes `habitId`'s entry from every day of a month-keyed, per-habit record (logs or memos) and persists each changed month. */
