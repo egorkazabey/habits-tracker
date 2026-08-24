@@ -44,6 +44,7 @@ import './App.css'
 
 type View = { name: 'list' } | { name: 'detail'; habitId: string }
 type NewHabit = Omit<Habit, 'id' | 'createdAt'>
+type DateTarget = { habitId: string; date: Date }
 
 function getMemoValue(memos: MemosByMonth, habitId: string, date: Date) {
   return memos[toMonthKey(date)]?.[toDayOfMonth(date)]?.[habitId] ?? ''
@@ -61,10 +62,11 @@ function App() {
   const [selectedDate, setSelectedDate] = useState(today())
 
   const [showAddSheet, setShowAddSheet] = useState(false)
+  const [editingHabitId, setEditingHabitId] = useState<string | null>(null)
   const [showFilterSheet, setShowFilterSheet] = useState(false)
   const [showMoodPicker, setShowMoodPicker] = useState(false)
-  const [goalHabitId, setGoalHabitId] = useState<string | null>(null)
-  const [memoPromptHabitId, setMemoPromptHabitId] = useState<string | null>(null)
+  const [goalTarget, setGoalTarget] = useState<DateTarget | null>(null)
+  const [memoPromptTarget, setMemoPromptTarget] = useState<DateTarget | null>(null)
 
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all')
@@ -98,19 +100,19 @@ function App() {
     setLogs(next)
     const nowDone = habit ? isHabitDoneForValue(habit, getValue(next, habitId, date)) : false
     if (habit && habit.kind === 'build' && habit.showMemo && !wasDone && nowDone) {
-      setMemoPromptHabitId(habitId)
+      setMemoPromptTarget({ habitId, date })
     }
   }
 
-  const handleSaveGoal = async (habitId: string, value: number, memoText: string) => {
+  const handleSaveGoal = async (habitId: string, date: Date, value: number, memoText: string) => {
     const habit = habits.find((h) => h.id === habitId)
-    const nextLogs = await setLogValue(logs, habitId, selectedDate, value)
+    const nextLogs = await setLogValue(logs, habitId, date, value)
     setLogs(nextLogs)
     if (habit?.showMemo) {
-      const nextMemos = await setMemo(memos, habitId, selectedDate, memoText)
+      const nextMemos = await setMemo(memos, habitId, date, memoText)
       setMemos(nextMemos)
     }
-    setGoalHabitId(null)
+    setGoalTarget(null)
     hapticNotify('success')
   }
 
@@ -119,7 +121,16 @@ function App() {
     setMemos(nextMemos)
   }
 
-  const handleAddHabit = async (data: NewHabit) => {
+  const handleSaveHabit = async (data: NewHabit) => {
+    if (editingHabitId) {
+      const next = habits.map((h) => (h.id === editingHabitId ? { ...h, ...data } : h))
+      setHabits(next)
+      await saveHabits(next)
+      setEditingHabitId(null)
+      hapticNotify('success')
+      syncAllReminders(next)
+      return
+    }
     const habit: Habit = { id: crypto.randomUUID(), createdAt: new Date().toISOString(), ...data }
     const next = [habit, ...habits]
     setHabits(next)
@@ -167,27 +178,15 @@ function App() {
     )
   }
 
-  if (tab === 'home' && view.name === 'detail') {
-    const habit = habits.find((h) => h.id === view.habitId)
-    if (!habit) {
-      setView({ name: 'list' })
-      return null
-    }
-    return (
-      <HabitDetail
-        habit={habit}
-        logs={logs}
-        todayValue={getValue(logs, habit.id, ref)}
-        todayMemo={getMemoValue(memos, habit.id, ref)}
-        onLogToday={() => (habit.type === 'goal' ? setGoalHabitId(habit.id) : handleToggleBoolean(habit.id, ref))}
-        onSaveMemo={(text) => handleSaveMemo(habit.id, ref, text)}
-        onDelete={() => handleDelete(habit.id)}
-      />
-    )
+  const detailHabit = tab === 'home' && view.name === 'detail' ? habits.find((h) => h.id === view.habitId) : undefined
+  if (tab === 'home' && view.name === 'detail' && !detailHabit) {
+    setView({ name: 'list' })
+    return null
   }
 
-  const goalHabit = goalHabitId ? habits.find((h) => h.id === goalHabitId) : undefined
-  const memoPromptHabit = memoPromptHabitId ? habits.find((h) => h.id === memoPromptHabitId) : undefined
+  const goalHabit = goalTarget ? habits.find((h) => h.id === goalTarget.habitId) : undefined
+  const memoPromptHabit = memoPromptTarget ? habits.find((h) => h.id === memoPromptTarget.habitId) : undefined
+  const editingHabit = editingHabitId ? habits.find((h) => h.id === editingHabitId) : undefined
   const todayMood = moods[toMonthKey(ref)]?.[toDayOfMonth(ref)]
 
   const filteredHabits = habits.filter((habit) => {
@@ -213,71 +212,99 @@ function App() {
 
   return (
     <>
-      {tab === 'home' && (
-        <div className="app">
-          <header className="app-header">
-            <div className="app-header-row">
-              <button type="button" className="filter-pill" onClick={() => setShowFilterSheet(true)}>
-                {filterLabel} ⌄
-              </button>
-              <h1>Привычки</h1>
-              <button type="button" className="mood-avatar" onClick={() => setShowMoodPicker(true)} aria-label="Настроение">
-                {todayMood ?? '🙂'}
-              </button>
-            </div>
-            <p className="app-subtitle">
-              {user?.first_name ? `Привет, ${user.first_name}!` : 'Отмечай прогресс каждый день'}
-            </p>
-          </header>
+      {detailHabit ? (
+        <HabitDetail
+          habit={detailHabit}
+          logs={logs}
+          todayValue={getValue(logs, detailHabit.id, ref)}
+          todayMemo={getMemoValue(memos, detailHabit.id, ref)}
+          onLogToday={() =>
+            detailHabit.type === 'goal'
+              ? setGoalTarget({ habitId: detailHabit.id, date: ref })
+              : handleToggleBoolean(detailHabit.id, ref)
+          }
+          onSaveMemo={(text) => handleSaveMemo(detailHabit.id, ref, text)}
+          onEdit={() => setEditingHabitId(detailHabit.id)}
+          onDelete={() => handleDelete(detailHabit.id)}
+        />
+      ) : (
+        <>
+          {tab === 'home' && (
+            <div className="app">
+              <header className="app-header">
+                <div className="app-header-row">
+                  <button type="button" className="filter-pill" onClick={() => setShowFilterSheet(true)}>
+                    {filterLabel} ⌄
+                  </button>
+                  <h1>Привычки</h1>
+                  <button type="button" className="mood-avatar" onClick={() => setShowMoodPicker(true)} aria-label="Настроение">
+                    {todayMood ?? '🙂'}
+                  </button>
+                </div>
+                <p className="app-subtitle">
+                  {user?.first_name ? `Привет, ${user.first_name}!` : 'Отмечай прогресс каждый день'}
+                </p>
+              </header>
 
-          <DayStrip selectedDate={selectedDate} today={ref} onSelect={setSelectedDate} />
+              <DayStrip selectedDate={selectedDate} today={ref} onSelect={setSelectedDate} />
 
-          {habits.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-emoji">🌱</div>
-              <p>Пока нет привычек</p>
-              <p className="empty-hint">Нажми «+», чтобы добавить первую</p>
-            </div>
-          ) : filteredHabits.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-emoji">🔍</div>
-              <p>Ничего не найдено под текущий фильтр</p>
-            </div>
-          ) : (
-            <div className="habit-list">
-              {filteredHabits.map((habit) => (
-                <HabitCard
-                  key={habit.id}
-                  habit={habit}
-                  value={getValue(logs, habit.id, selectedDate)}
-                  streak={getCurrentStreak(logs, habit, ref)}
-                  onToggle={() =>
-                    habit.type === 'goal' ? setGoalHabitId(habit.id) : handleToggleBoolean(habit.id, selectedDate)
-                  }
-                  onOpen={() => setView({ name: 'detail', habitId: habit.id })}
-                />
-              ))}
+              {habits.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-emoji">🌱</div>
+                  <p>Пока нет привычек</p>
+                  <p className="empty-hint">Нажми «+», чтобы добавить первую</p>
+                </div>
+              ) : filteredHabits.length === 0 ? (
+                <div className="empty-state">
+                  <div className="empty-emoji">🔍</div>
+                  <p>Ничего не найдено под текущий фильтр</p>
+                </div>
+              ) : (
+                <div className="habit-list">
+                  {filteredHabits.map((habit) => (
+                    <HabitCard
+                      key={habit.id}
+                      habit={habit}
+                      value={getValue(logs, habit.id, selectedDate)}
+                      streak={getCurrentStreak(logs, habit, ref)}
+                      onToggle={() =>
+                        habit.type === 'goal'
+                          ? setGoalTarget({ habitId: habit.id, date: selectedDate })
+                          : handleToggleBoolean(habit.id, selectedDate)
+                      }
+                      onOpen={() => setView({ name: 'detail', habitId: habit.id })}
+                    />
+                  ))}
+                </div>
+              )}
+
+              <button type="button" className="fab" onClick={() => setShowAddSheet(true)} aria-label="Добавить привычку">
+                +
+              </button>
             </div>
           )}
 
-          <button type="button" className="fab" onClick={() => setShowAddSheet(true)} aria-label="Добавить привычку">
-            +
-          </button>
-        </div>
+          {tab === 'overview' && <OverviewScreen habits={habits} logs={logs} onAdd={() => setShowAddSheet(true)} />}
+
+          {tab === 'report' && (
+            <ReportScreen habits={habits} logs={logs} moods={moods} onSetMood={handleSetMood} onAdd={() => setShowAddSheet(true)} />
+          )}
+
+          {tab === 'settings' && <SettingsScreen onResetAll={handleResetAll} />}
+
+          <BottomNav active={tab} onChange={(t) => { setTab(t); setView({ name: 'list' }) }} />
+        </>
       )}
 
-      {tab === 'overview' && <OverviewScreen habits={habits} logs={logs} onAdd={() => setShowAddSheet(true)} />}
+      {showAddSheet && <AddHabitSheet existingGroups={groups} onSubmit={handleSaveHabit} onClose={() => setShowAddSheet(false)} />}
 
-      {tab === 'report' && (
-        <ReportScreen habits={habits} logs={logs} moods={moods} onSetMood={handleSetMood} onAdd={() => setShowAddSheet(true)} />
-      )}
-
-      {tab === 'settings' && <SettingsScreen onResetAll={handleResetAll} />}
-
-      <BottomNav active={tab} onChange={(t) => { setTab(t); setView({ name: 'list' }) }} />
-
-      {showAddSheet && (
-        <AddHabitSheet existingGroups={groups} onSubmit={handleAddHabit} onClose={() => setShowAddSheet(false)} />
+      {editingHabit && (
+        <AddHabitSheet
+          existingGroups={groups}
+          initialHabit={editingHabit}
+          onSubmit={handleSaveHabit}
+          onClose={() => setEditingHabitId(null)}
+        />
       )}
 
       {showFilterSheet && (
@@ -293,27 +320,27 @@ function App() {
         />
       )}
 
-      {goalHabit && (
+      {goalHabit && goalTarget && (
         <GoalLogSheet
           habit={goalHabit}
-          value={getValue(logs, goalHabit.id, tab === 'home' ? selectedDate : ref)}
-          initialMemo={getMemoValue(memos, goalHabit.id, tab === 'home' ? selectedDate : ref)}
-          onSave={(value, memoText) => handleSaveGoal(goalHabit.id, value, memoText)}
-          onClose={() => setGoalHabitId(null)}
+          value={getValue(logs, goalHabit.id, goalTarget.date)}
+          initialMemo={getMemoValue(memos, goalHabit.id, goalTarget.date)}
+          onSave={(value, memoText) => handleSaveGoal(goalHabit.id, goalTarget.date, value, memoText)}
+          onClose={() => setGoalTarget(null)}
         />
       )}
 
       {showMoodPicker && <MoodPicker onSelect={(emoji) => handleSetMood(ref, emoji)} onClose={() => setShowMoodPicker(false)} />}
 
-      {memoPromptHabit && (
+      {memoPromptHabit && memoPromptTarget && (
         <MemoPrompt
           habitName={memoPromptHabit.name}
-          initialText={getMemoValue(memos, memoPromptHabit.id, selectedDate)}
+          initialText={getMemoValue(memos, memoPromptHabit.id, memoPromptTarget.date)}
           onSave={(text) => {
-            handleSaveMemo(memoPromptHabit.id, selectedDate, text)
-            setMemoPromptHabitId(null)
+            handleSaveMemo(memoPromptHabit.id, memoPromptTarget.date, text)
+            setMemoPromptTarget(null)
           }}
-          onSkip={() => setMemoPromptHabitId(null)}
+          onSkip={() => setMemoPromptTarget(null)}
         />
       )}
     </>

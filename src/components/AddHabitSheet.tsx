@@ -9,41 +9,46 @@ type NewHabit = Omit<Habit, 'id' | 'createdAt'>
 
 interface AddHabitSheetProps {
   existingGroups: string[]
+  initialHabit?: Habit
   onSubmit: (data: NewHabit) => void
   onClose: () => void
 }
 
 const ALL_WEEKDAYS = [0, 1, 2, 3, 4, 5, 6]
 
-export default function AddHabitSheet({ existingGroups, onSubmit, onClose }: AddHabitSheetProps) {
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [color, setColor] = useState(HABIT_COLORS[0])
-  const [group, setGroup] = useState('')
-  const [iconType, setIconType] = useState<IconType>('emoji')
-  const [icon, setIcon] = useState('💪')
+export default function AddHabitSheet({ existingGroups, initialHabit, onSubmit, onClose }: AddHabitSheetProps) {
+  const isEditing = Boolean(initialHabit)
+
+  const [name, setName] = useState(initialHabit?.name ?? '')
+  const [description, setDescription] = useState(initialHabit?.description ?? '')
+  const [color, setColor] = useState(initialHabit?.color ?? HABIT_COLORS[0])
+  const [group, setGroup] = useState(initialHabit?.group ?? '')
+  const [iconType, setIconType] = useState<IconType>(initialHabit?.iconType ?? 'emoji')
+  const [icon, setIcon] = useState(initialHabit?.icon ?? '💪')
   const [showIconPicker, setShowIconPicker] = useState(false)
 
-  const [kind, setKind] = useState<HabitKind>('build')
-  const [type, setType] = useState<HabitType>('boolean')
-  const [target, setTarget] = useState(1)
-  const [unit, setUnit] = useState('раз')
+  const [kind, setKind] = useState<HabitKind>(initialHabit?.kind ?? 'build')
+  const [type, setType] = useState<HabitType>(initialHabit?.type ?? 'boolean')
+  const [target, setTarget] = useState(initialHabit?.goal?.target ?? 1)
+  const [unit, setUnit] = useState(initialHabit?.goal?.unit ?? 'раз')
 
-  const [everyDay, setEveryDay] = useState(true)
-  const [activeWeekdays, setActiveWeekdays] = useState<number[]>([])
+  const [everyDay, setEveryDay] = useState(!initialHabit || initialHabit.activeWeekdays.length === 7)
+  const [activeWeekdays, setActiveWeekdays] = useState<number[]>(
+    initialHabit && initialHabit.activeWeekdays.length !== 7 ? initialHabit.activeWeekdays : [],
+  )
 
-  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('anytime')
+  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(initialHabit?.timeOfDay ?? 'anytime')
 
-  const [remindersOn, setRemindersOn] = useState(false)
-  const [reminderTimes, setReminderTimes] = useState<string[]>([])
+  const [remindersOn, setRemindersOn] = useState(Boolean(initialHabit?.reminders?.length))
+  const [reminderTimes, setReminderTimes] = useState<string[]>(initialHabit?.reminders?.map((r) => r.time) ?? [])
   const [newReminderTime, setNewReminderTime] = useState('09:00')
-  const [reminderMessage, setReminderMessage] = useState('')
+  const [reminderMessage, setReminderMessage] = useState(initialHabit?.reminderMessage ?? '')
 
-  const [showMemo, setShowMemo] = useState(true)
-  const [chartType, setChartType] = useState<ChartType>('bar')
+  const [showMemo, setShowMemo] = useState(initialHabit?.showMemo ?? true)
+  const [chartType, setChartType] = useState<ChartType>(initialHabit?.chartType ?? 'bar')
 
-  const [startDate, setStartDate] = useState(toDateKey(new Date()))
-  const [endDate, setEndDate] = useState('')
+  const [startDate, setStartDate] = useState(initialHabit?.startDate ?? toDateKey(new Date()))
+  const [endDate, setEndDate] = useState(initialHabit?.endDate ?? '')
 
   const canSubmit =
     name.trim().length > 0 &&
@@ -86,7 +91,7 @@ export default function AddHabitSheet({ existingGroups, onSubmit, onClose }: Add
     <div className="sheet-overlay" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-header">
-          <h2>Новая привычка</h2>
+          <h2>{isEditing ? 'Изменить привычку' : 'Новая привычка'}</h2>
           <button type="button" className="icon-btn" onClick={onClose} aria-label="Закрыть">
             ✕
           </button>
@@ -313,7 +318,7 @@ export default function AddHabitSheet({ existingGroups, onSubmit, onClose }: Add
         </div>
 
         <button type="button" className="primary-btn" disabled={!canSubmit} onClick={submit}>
-          Добавить
+          {isEditing ? 'Сохранить' : 'Добавить'}
         </button>
       </div>
 

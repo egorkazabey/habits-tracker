@@ -13,10 +13,11 @@ interface HabitDetailProps {
   todayMemo: string
   onLogToday: () => void
   onSaveMemo: (text: string) => void
+  onEdit: () => void
   onDelete: () => void
 }
 
-export default function HabitDetail({ habit, logs, todayValue, todayMemo, onLogToday, onSaveMemo, onDelete }: HabitDetailProps) {
+export default function HabitDetail({ habit, logs, todayValue, todayMemo, onLogToday, onSaveMemo, onEdit, onDelete }: HabitDetailProps) {
   const ref = today()
   const current = getCurrentStreak(logs, habit, ref)
   const best = getBestStreak(logs, habit)
@@ -103,9 +104,14 @@ export default function HabitDetail({ habit, logs, todayValue, todayMemo, onLogT
         </>
       )}
 
-      <button type="button" className="danger-btn" onClick={onDelete}>
-        Удалить привычку
-      </button>
+      <div className="detail-actions">
+        <button type="button" className="secondary-btn" onClick={onEdit}>
+          Изменить
+        </button>
+        <button type="button" className="danger-btn" onClick={onDelete}>
+          Удалить
+        </button>
+      </div>
     </div>
   )
 }

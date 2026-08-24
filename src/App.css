@@ -403,6 +403,29 @@
   margin-top: 24px;
 }
 
+.secondary-btn {
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  background: var(--tg-secondary-bg);
+  color: var(--tg-text);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.detail-actions .secondary-btn,
+.detail-actions .danger-btn {
+  flex: 1;
+  width: auto;
+  margin-top: 0;
+}
+
 /* Segmented controls (filter sheet, add-habit type/time) */
 
 .segmented {
